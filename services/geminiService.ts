@@ -16,6 +16,10 @@ const blobToBase64 = (blob: Blob): Promise<string> => {
 };
 
 const getAIClient = () => {
+  // Ensure API Key exists
+  if (!process.env.API_KEY) {
+    throw new Error("APIキーが設定されていません。Netlifyの環境変数に 'API_KEY' を設定してください。");
+  }
   // Always initialize with the apiKey named parameter using process.env.API_KEY.
   return new GoogleGenAI({ apiKey: process.env.API_KEY });
 };

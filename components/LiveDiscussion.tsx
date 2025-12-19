@@ -98,9 +98,19 @@ const LiveDiscussion: React.FC<LiveDiscussionProps> = ({ onEnd }) => {
   };
 
   const connectToLiveAPI = useCallback(async () => {
-    // Check if key is selected; use casting to avoid global interface conflicts.
-    if ((window as any).aistudio && !(await (window as any).aistudio.hasSelectedApiKey())) {
-      await (window as any).aistudio.openSelectKey();
+    // Basic check for API Key env var (for Netlify deployments)
+    if (!process.env.API_KEY) {
+       // Also check for AI Studio selector if available
+       if ((window as any).aistudio) {
+         if (!(await (window as any).aistudio.hasSelectedApiKey())) {
+           await (window as any).aistudio.openSelectKey();
+         }
+       } else {
+         console.error("API Key missing");
+         setStatus('error');
+         alert("APIキーが見つかりません。Netlifyの環境変数 'API_KEY' を設定してください。");
+         return;
+       }
     }
 
     setStatus('connecting');
@@ -120,13 +130,13 @@ const LiveDiscussion: React.FC<LiveDiscussionProps> = ({ onEnd }) => {
       const sessionPromise = ai.live.connect({
         model: 'gemini-2.5-flash-native-audio-preview-09-2025',
         config: {
-          responseModalalities: [Modality.AUDIO], 
+          responseModalities: [Modality.AUDIO], 
           inputAudioTranscription: {}, 
           outputAudioTranscription: {},
           speechConfig: {
             voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Zephyr' } }
           },
-          systemInstruction: 'あなたは看護歴30年、S級2位ヒーローの「戦慄のお局看護師」です。態度は非常に傲慢で口が悪いですが、指示は的確で、内心は新人を助けたいと思っています。',
+          systemInstruction: 'あなたは看護歴30年、S級2位ヒーローの「戦慄のお局看護師」です。口調は厳しく傲慢ですが、臨床判断は極めて正確で、新人を守ろうとする責任感を持っています。',
         },
         callbacks: {
           onopen: () => {
@@ -206,7 +216,9 @@ const LiveDiscussion: React.FC<LiveDiscussionProps> = ({ onEnd }) => {
             const errorMsg = err?.message || "";
             // Reset key selection if entity not found.
             if (errorMsg.includes("Requested entity was not found")) {
-                (window as any).aistudio.openSelectKey();
+                if ((window as any).aistudio) {
+                    (window as any).aistudio.openSelectKey();
+                }
             }
             setStatus('error');
           }
