@@ -1,0 +1,7 @@
+{
+  "name": "Copy of NurseAssist AI",
+  "description": "訪問看護師のための音声記録・看護計画自動作成アプリ。訪問中の会話や記録を録音し、Gemini 2.5 Flashを使用してSOAP記録と看護計画を即座に立案します。",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
